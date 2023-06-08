@@ -1,0 +1,3 @@
+These are my working files for nand2tetris, a project I'm working on where I build a functional computer from the ground up (with virtualized hardware, I don't want to build 16,000 register circuits to make RAM). This section starts with NAND gates and culminates in Registers, RAM, and and Arithmetic Logic Unit.
+
+You can technically run all of the circuits and tests using just the Hardware Simulator. However, your physical machine is likely to run out of memory if you do so without using any of the more optimal builtin funcitons found in the nand2tetris project

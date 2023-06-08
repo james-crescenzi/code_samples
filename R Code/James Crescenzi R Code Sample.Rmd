@@ -1,0 +1,220 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+SETUP
+
+```{r}
+rm(list = ls())
+library(forcats)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(data.table)
+library(scales)
+data <- read.csv("~/IRandAfrica/TRIP_JAD_2021_Feb_23.csv", stringsAsFactors=TRUE)
+
+ View(data)
+
+#data = data %>% filter(year >= 2008)
+```
+
+
+```{r}
+AllRegions <- filter(data, data$Region_None == 'No' && data$Region_Global == 'No')
+SubSaharanAfrica <- filter(data, data$Region_SubSaharanAfrica == "Yes")
+Antarctica <- filter(data, data$Region_Antartica == 'Yes')
+CanadaWestEurope <- filter(data, data$Region_CanadaWestEurope == 'Yes')
+EastAsia <- filter(data, data$Region_EastAsia == 'Yes')
+FSUEasternEurope <- filter(data, data$Region_FSUEasternEurope == 'Yes')
+LatinAmerica <- filter(data, data$Region_LatinAmerica == 'Yes')
+MiddleEastNorthAfrica <- filter(data, data$Region_MiddleEastNorthAfrica == 'Yes')
+Oceania <- filter(data, data$Region_Oceania == 'Yes')
+SouthAsia <- filter(data, data$Region_SouthAsia == 'Yes')
+SoutheastAsia<- filter(data, data$Region_SoutheastAsia == 'Yes')
+UnitedStates <- filter(data, data$Region_UnitedStates == 'Yes')
+```
+
+
+```{r}
+num_articles_by_region = data.frame(row.names = c(1:11))#12))
+num_articles_by_region$Region = c("Sub-Saharan Africa", "Antarctica", "Canada & West Europe", "East Asia", "FSU & Eastern Europe", "Latin America", "Middle East & North Africa", "Oceania", 'South Asia', 'Southeast Asia', 'United States') #, 'AllRegions')
+
+num_articles_by_region$Articles = 0
+
+num_articles_by_region$Articles[num_articles_by_region$Region == "Sub-Saharan Africa"] = length(SubSaharanAfrica$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Antarctica"] = length(Antarctica$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Canada & West Europe"] = length(CanadaWestEurope$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "East Asia"] = length(EastAsia$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "FSU & Eastern Europe"] = length(FSUEasternEurope$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Latin America"] = length(LatinAmerica$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Middle East & North Africa"] = length(MiddleEastNorthAfrica$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Oceania"] = length(Oceania$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "South Asia"] = length(SouthAsia$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "Southeast Asia"] = length(SoutheastAsia$pubID)
+num_articles_by_region$Articles[num_articles_by_region$Region == "United States"] = length(UnitedStates$pubID)
+#num_articles_by_region$Articles[num_articles_by_region$Region == "AllRegions"] = length(AllRegions$pubID)
+
+num_articles_by_region$Percent = num_articles_by_region$Articles / length(AllRegions$pubID) * 100
+
+```
+
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, Articles, fill = Region)) + geom_col() + coord_flip() + labs(title = "Articles by Region")
+```
+```{r}
+ggplot(num_articles_by_region, aes(Region, Percent, fill = Region)) + geom_col() + coord_flip() + labs(title = "Percentage of Articles by Region")
+```
+
+```{r}
+# Manual imputation of population
+num_articles_by_region$Population = 0
+num_articles_by_region$Population[num_articles_by_region$Region == 'Sub-Saharan Africa'] = 866319757
+
+num_articles_by_region$Population[num_articles_by_region$Region == "Antarctica"] = NA
+
+num_articles_by_region$Population[num_articles_by_region$Region == "Canada & West Europe"] = 446147843
+
+num_articles_by_region$Population[num_articles_by_region$Region == "East Asia"] = 1581547003
+num_articles_by_region$Population[num_articles_by_region$Region == "FSU & Eastern Europe"] = 398173888
+num_articles_by_region$Population[num_articles_by_region$Region == "Latin America"] = 589945146
+num_articles_by_region$Population[num_articles_by_region$Region == "Middle East & North Africa"] = 486167991
+num_articles_by_region$Population[num_articles_by_region$Region == "Oceania"] = 36316222
+num_articles_by_region$Population[num_articles_by_region$Region == "South Asia"] = 1609607427
+num_articles_by_region$Population[num_articles_by_region$Region == "Southeast Asia"] = 596947245
+num_articles_by_region$Population[num_articles_by_region$Region == "United States"] = 309011475
+
+num_articles_by_region$ArticlesByPopulation = num_articles_by_region$Articles / num_articles_by_region$Population
+
+total_by_population = sum(num_articles_by_region$ArticlesByPopulation[num_articles_by_region$Region != "Antarctica"])
+
+num_articles_by_region$ArticlesByPopulationPercentage = num_articles_by_region$ArticlesByPopulation / total_by_population * 100
+```
+
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, ArticlesByPopulation, fill = Region)) + geom_col() + coord_flip() + labs(title = "Articles/Population by Region")
+```
+
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, ArticlesByPopulationPercentage, fill = Region)) + geom_col() + coord_flip() + labs(title = "Articles/Population by Region")
+```
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, Population, fill = Region)) + geom_col() + coord_flip() + labs(title = "Population by Region")
+
+```
+
+
+```{r}
+# Manual imputation of GDP
+num_articles_by_region$GDP = 0
+num_articles_by_region$GDP[num_articles_by_region$Region == 'Sub-Saharan Africa'] = 1329382283428
+
+num_articles_by_region$GDP[num_articles_by_region$Region == "Antarctica"] = NA
+
+num_articles_by_region$GDP[num_articles_by_region$Region == "Canada & West Europe"] = 16815658839224
+
+num_articles_by_region$GDP[num_articles_by_region$Region == "East Asia"] = 13364622085017
+num_articles_by_region$GDP[num_articles_by_region$Region == "FSU & Eastern Europe"] = 2932210487394
+num_articles_by_region$GDP[num_articles_by_region$Region == "Latin America"] = 4941907140817
+num_articles_by_region$GDP[num_articles_by_region$Region == "Middle East & North Africa"] = 3270422940060
+num_articles_by_region$GDP[num_articles_by_region$Region == "Oceania"] = 1270167668405
+num_articles_by_region$GDP[num_articles_by_region$Region == "South Asia"] = 2028055420440
+num_articles_by_region$GDP[num_articles_by_region$Region == "Southeast Asia"] = 1939995819313
+num_articles_by_region$GDP[num_articles_by_region$Region == "United States"] = 16383039509841.10
+
+num_articles_by_region$ArticlesByGDP = num_articles_by_region$Articles / num_articles_by_region$GDP
+```
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, ArticlesByGDP, fill = Region)) + geom_col() + coord_flip() + labs(title = "Articles/GDP by Region")
+```
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, GDP, fill = Region)) + geom_col() + coord_flip() + labs(title = "GDP by Region")
+```
+
+```{r}
+# Manual imputation of Conflict
+num_articles_by_region$Conflict = 0
+num_articles_by_region$Conflict[num_articles_by_region$Region == 'Sub-Saharan Africa'] = 92
+
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Antarctica"] = NA
+
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Canada & West Europe"] = 11
+
+num_articles_by_region$Conflict[num_articles_by_region$Region == "East Asia"] = 10
+num_articles_by_region$Conflict[num_articles_by_region$Region == "FSU & Eastern Europe"] = 39
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Latin America"] = 25
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Middle East & North Africa"] = 57
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Oceania"] = 2
+num_articles_by_region$Conflict[num_articles_by_region$Region == "South Asia"] = 31
+num_articles_by_region$Conflict[num_articles_by_region$Region == "Southeast Asia"] = 42
+num_articles_by_region$Conflict[num_articles_by_region$Region == "United States"] = 7
+
+num_articles_by_region$ArticlesByConflict = num_articles_by_region$Articles / num_articles_by_region$Conflict
+```
+
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, ArticlesByConflict, fill = Region)) + geom_col() + coord_flip() + labs(title = "Articles/Conflict by Region")
+```
+
+
+
+```{r}
+ggplot(num_articles_by_region, aes(Region, Conflict, fill = Region)) + geom_col() + coord_flip() + labs(title = "Conflict by Region")
+```
+
+
+
+
+
+```{r}
+
+
+
+focus_list = c("Alliances", "Balance of Power", "Bargaining, Deterrence, and Strategy", "Development", "Diplomacy", "Domestic Politics", "Economic Interdependence", "Environment", "Ethnicity and/or Religion", "Foreign Aid, Lending, and Debt", "Foreign Policy", "Gender", "Military/Humanitarian Intervention or Peace-keeping", "International Intergovernmental Organizations", "Inter-State Crisis", "Inter-State War", "International Law", "Intra-state Conflict / Civil War", "Study of the IR Discipline", "International Regimes / International Norms", "Migration/Immigration", "Monetary Policy", "Transnational Actors", "North-South Relations", "Public Health/Infectious Disease", "Public Opinion", "Regime Type", "Regional Integration", "Sanctions", "Terrorism", "Trade", "Weapons Systems, Defense Spending, and Arms Races", "WMD Proliferations and Arms Control", "Other")
+
+substantive_focus = data.frame(focus_list)
+
+#63 is first one, so add 62
+
+
+
+```
+
+
+
+```{r}
+substantive_focus$CWE = 0
+
+for (i in 1:34){
+  substantive_focus$CWE[i] = as.numeric(table(CanadaWestEurope[,62+i])[2])
+}
+
+substantive_focus %>%
+  mutate(focus_list = fct_reorder(focus_list, desc(focus_list))) %>%
+  ggplot(aes(focus_list, CWE, fill = focus_list)) +     geom_col(show.legend = FALSE) + coord_flip() + labs(title = "CWE Substantive Focus")
+
+ggsave(filename = "~/IRandAfrica/CWE_focus.tiff",
+       width = 8,
+       height = 7,
+       device='tiff', dpi=700)
+
+```
+
+
+```{r}
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
